@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Deduplication System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+    
+    <main class="container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; text-align: left;">
+            <div>
+                <h1 style="margin-bottom: 0;">Secure Deduplication</h1>
+                <p>Upload files to see BLAKE3 deduplication in action</p>
+            </div>
+            <div class="user-select" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.75rem; border: 1px solid var(--glass-border);">
+                <label for="username-select" style="margin-right: 0.5rem; color: var(--text-secondary); font-weight: 600;">Logged in as:</label>
+                <select id="username-select" style="padding: 0.5rem; border-radius: 0.5rem; background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--accent); font-family: inherit; font-size: 1rem;">
+                    <option value="Alice">Alice</option>
+                    <option value="Bob">Bob</option>
+                </select>
+            </div>
+        </header>
+
+        <section class="upload-section">
+            <div id="drop-zone" class="drop-zone">
+                <div class="drop-content">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>Drag and drop files here</p>
+                    <span class="or-divider">or</span>
+                    <label class="btn-browse">
+                        Browse Files
+                        <input type="file" id="file-input" hidden multiple>
+                    </label>
+                </div>
+            </div>
+            <div id="progress-container" class="progress-container hidden">
+                <div class="progress-bar-bg">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <p id="progress-text">Uploading...</p>
+            </div>
+        </section>
+
+        <div class="dashboard-grid">
+            <section class="results-section hidden" id="results-section">
+                <h2>Latest Upload Result</h2>
+                <div class="card result-card">
+                    <div class="result-header">
+                        <h3 id="res-filename">filename.jpg</h3>
+                        <span id="res-badge" class="badge">Success</span>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="label">Total Chunks</span>
+                            <span class="value" id="res-chunks">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="label">Duplicate Chunks</span>
+                            <span class="value" id="res-dupes" class="highlight">0</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="label">Storage Saved</span>
+                            <span class="value" id="res-saved">0%</span>
+                        </div>
+                    </div>
+                    <div class="hash-container">
+                        <span class="label">BLAKE3 File Hash:</span>
+                        <code id="res-hash">...</code>
+                    </div>
+                </div>
+            </section>
+
+            <section class="system-stats-section">
+                <h2>System Overview</h2>
+                <div class="card stats-card">
+                    <div class="stat-item">
+                        <span class="label">Total Files</span>
+                        <span class="value" id="sys-files">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Raw Storage Size</span>
+                        <span class="value" id="sys-raw">0 B</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Actual Storage Used</span>
+                        <span class="value" id="sys-actual">0 B</span>
+                    </div>
+                    <div class="stat-item highlight-box">
+                        <span class="label">Overall Space Saved</span>
+                        <span class="value highlight-text" id="sys-saved-pct">0%</span>
+                    </div>
+                </div>
+                <div class="card stats-card" style="margin-top: 1rem;">
+                    <canvas id="savingsChart"></canvas>
+                </div>
+            </section>
+        </div>
+
+        <section class="library-section" style="margin-top: 2rem;">
+            <h2>File Library</h2>
+            <div class="card library-card">
+                <table id="file-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--glass-border); text-align: left;">
+                            <th style="padding: 1rem 0;">Filename</th>
+                            <th style="padding: 1rem 0;">Size</th>
+                            <th style="padding: 1rem 0;">Upload Date</th>
+                            <th style="padding: 1rem 0; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="file-list">
+                        <!-- Files will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <script src="/static/app.js?v=3"></script>
+</body>
+</html>
