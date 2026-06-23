@@ -52,21 +52,71 @@ function init() {
     
     const userSelect = document.getElementById('username-select');
     userSelect.addEventListener('change', () => {
-        generateUserKeys(userSelect.value).then(fetchFileList);
+        generateUserKeys(userSelect.value).then(fetchFileList).catch(err => {
+            console.error("Failed in user select flow:", err);
+        });
     });
 
+    function showSecureContextWarning() {
+        if (document.getElementById('secure-context-warning')) return;
+        const warning = document.createElement('div');
+        warning.id = 'secure-context-warning';
+        warning.style.background = 'rgba(239, 68, 68, 0.2)';
+        warning.style.border = '1px solid #ef4444';
+        warning.style.color = '#fecaca';
+        warning.style.padding = '1rem';
+        warning.style.borderRadius = '0.75rem';
+        warning.style.marginBottom = '1.5rem';
+        warning.style.fontWeight = '600';
+        warning.style.textAlign = 'left';
+        warning.innerHTML = `
+            ⚠️ <strong>Secure Context Required:</strong> The Web Crypto API is unavailable. 
+            Please access this page via <a href="http://localhost:8000" style="color: #60a5fa; text-decoration: underline;">http://localhost:8000</a> 
+            instead of IP addresses or other hostnames, or configure a secure HTTPS connection.
+        `;
+        const container = document.querySelector('.container');
+        if (container) {
+            container.insertBefore(warning, container.firstChild);
+        }
+    }
+
+    function checkCryptoSupport() {
+        if (!window.crypto || !window.crypto.subtle) {
+            console.error("Web Crypto API is not supported in this context.");
+            showSecureContextWarning();
+            return false;
+        }
+        return true;
+    }
+
     async function generateUserKeys(username) {
-        currentKeypair = await window.crypto.subtle.generateKey(
-            { name: "ECDSA", namedCurve: "P-256" },
-            true,
-            ["sign", "verify"]
-        );
-        const exported = await window.crypto.subtle.exportKey("spki", currentKeypair.publicKey);
-        publicKeySpkiBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)));
-        console.log(`Generated keys for ${username}`);
+        if (!checkCryptoSupport()) return;
+        try {
+            currentKeypair = await window.crypto.subtle.generateKey(
+                { name: "ECDSA", namedCurve: "P-256" },
+                true,
+                ["sign", "verify"]
+            );
+            const exported = await window.crypto.subtle.exportKey("spki", currentKeypair.publicKey);
+            publicKeySpkiBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)));
+            console.log(`Generated keys for ${username}`);
+        } catch (err) {
+            console.error("Key generation failed:", err);
+            alert("Failed to generate cryptographic keys. Ensure you are accessing the page via localhost or HTTPS.");
+        }
     }
     
-    generateUserKeys(userSelect.value).then(fetchFileList);
+    generateUserKeys(userSelect.value).then(fetchFileList).catch(err => {
+        console.error("Initial key generation failed:", err);
+    });
+
+    // Make the entire drop zone clickable
+    dropZone.addEventListener('click', (e) => {
+        // Only click the input if we didn't click inside the label or the input itself (to avoid infinite loops)
+        if (e.target !== fileInput && !e.target.closest('.btn-browse')) {
+            fileInput.click();
+        }
+    });
 
     // Drag and drop events
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -112,7 +162,11 @@ function init() {
 
     async function uploadFile(file) {
         if (!currentKeypair) {
-            alert('Keypair not ready yet.');
+            if (!window.crypto || !window.crypto.subtle) {
+                alert('Web Crypto API is not available in this browser/context. Please access this page using http://localhost:8000 to enable secure signing.');
+            } else {
+                alert('Keypair is not ready yet. Please wait a moment and try again.');
+            }
             return;
         }
 
