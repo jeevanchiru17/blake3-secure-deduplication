@@ -42,9 +42,7 @@ async def upload_file(
         
     # Verify signature before processing (over manifest: filename:size)
     # The client signs the string "filename:size"
-    file.file.seek(0, 2)
-    file_size = file.file.tell()
-    file.file.seek(0)
+    file_size = os.path.getsize(temp_path)
     
     manifest = f"{file.filename}:{file_size}".encode('utf-8')
     is_valid = EcdsaSigner.verify_signature(public_key, signature, manifest)

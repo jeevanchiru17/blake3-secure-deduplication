@@ -1,5 +1,5 @@
 /* src/api/static/app.js */
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const progressContainer = document.getElementById('progress-container');
@@ -132,10 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
 
         const formData = new FormData();
-        formData.append('file', file);
         formData.append('username', username);
         formData.append('public_key', publicKeySpkiBase64);
         formData.append('signature', signatureBase64);
+        formData.append('file', file);
 
         progressText.textContent = 'Uploading and Deduplicating...';
 
@@ -252,4 +252,10 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => console.error('Error fetching file list:', err));
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
