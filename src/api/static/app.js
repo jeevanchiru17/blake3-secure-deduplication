@@ -8,12 +8,12 @@ function init() {
     
     const resultsSection = document.getElementById('results-section');
     
+    // Chart instance
+    let savingsChart = null;
+
     // Initial fetch for system stats
     initChart();
     fetchSystemStats();
-
-    // Chart instance
-    let savingsChart = null;
 
     function initChart() {
         const ctx = document.getElementById('savingsChart').getContext('2d');
